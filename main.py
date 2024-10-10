@@ -232,7 +232,9 @@ def evaluate(model_name, num_fewshot, batch_size, device, limit):
             dataset=data, few_shot=5, subtype_text=subtext
         )  # for dynamic version w subtext
 
-        for i in tqdm(range(total_limit), desc=f'Evaluating {task_type}'):
+
+        for i in tqdm(range(num_fewshot, total_limit), desc=f'Evaluating {task_type}'): # if base few-shot works:
+        # for i in tqdm(range(total_limit), desc=f'Evaluating {task_type}'): # if need to run all dataset
             question = data['text'][i]
             options = data.get('options', [])[i] if task_type == "mmlu" else None
             context = data.get('context', [])[i] if task_type in ["rag", "mmlu_context"] else None
