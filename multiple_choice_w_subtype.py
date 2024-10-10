@@ -4,6 +4,7 @@ import torch
 import re
 import pandas as pd
 
+from utility import format_options
 
 
 def get_answer_multiple_choice_w_subtype(question, options, model, tokenizer, num_fewshot, dstype, base_prompt):
@@ -11,6 +12,8 @@ def get_answer_multiple_choice_w_subtype(question, options, model, tokenizer, nu
     # generation_config = model.generation_config
     # generation_config.max_length = 1000
     # generation_config.pad_token_id = tokenizer.pad_token_id
+
+    options = format_options(options, dstype) # format option
 
 
     conversation = []
@@ -100,7 +103,7 @@ def compare_answers(actual_answer: str, predicted_answer: str) -> int:
 # ------------------------------
 
 
-def dynamic_multiple_choice_subtype_base_prompt(dataset, few_shot=5, subtype_text='You are an AI designed to answer questions in Azerbaijani. You are an AI tasked with selecting the most accurate answer in Azerbaijani based on a given question. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text.'):
+def dynamic_multiple_choice_subtype_base_prompt(dataset, few_shot=5, subtype_text='You are an AI designed to answer questions in Azerbaijani. You are an AI tasked with selecting the most accurate answer in Azerbaijani based on a given question. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text.', dstype='mc'):
 
     # Limit to the specified number of examples
     few_shot_examples = dataset[:few_shot]
@@ -108,16 +111,15 @@ def dynamic_multiple_choice_subtype_base_prompt(dataset, few_shot=5, subtype_tex
     messages = [
         {
             "role": "system",
-            "content": subtype_text
+            "content": "You are an AI that selects the most accurate answer in Azerbaijani based on a given question. You will be provided with a question in Azerbaijani and multiple options in Azerbaijani. Choose the single letter (A, B, C, D, ...) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."
         }
     ]
 
-
     # Adding each question and options
     for entry in few_shot_examples:
-        
         question = entry["question"]
-        options = "\n".join(entry["options"])
+        
+        options = format_options(entry["options"], dstype) # format 
 
         messages.append({
             "role": "user",
@@ -129,8 +131,6 @@ def dynamic_multiple_choice_subtype_base_prompt(dataset, few_shot=5, subtype_tex
         })
 
     return messages
-
-
 
 
 

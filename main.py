@@ -228,7 +228,7 @@ def evaluate(model_name, num_fewshot, batch_size, device, limit):
         group = data['group']
 
         total_score = 0
-        total_limit = min(limit, len(data))  # if needed
+        total_limit = min(limit, len(data))  # if need
         
         dataset_score = 0  # Score for the current dataset
         correct_count = 0  # Count of correct answers for the dataset
