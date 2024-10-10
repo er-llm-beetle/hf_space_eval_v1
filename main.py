@@ -83,7 +83,7 @@ def evaluate(model_name, num_fewshot, batch_size, device, limit):
     # Metadata:
 
     # v1 without dstype
-    datasets = [
+    datasets_v1 = [
         {
             "task_type": "mmlu",
             "group": "banking",
@@ -123,7 +123,7 @@ def evaluate(model_name, num_fewshot, batch_size, device, limit):
 
 
     # v2 without dstype and with subtypeText
-    datasets = [
+    datasets_v2 = [
         {
             "task_type": "mmlu",
             "group": "banking",
