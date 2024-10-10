@@ -14,7 +14,8 @@ from multiple_choice_w_subtype import (
     compare_answers,
     dynamic_multiple_choice_subtype_base_prompt
 )
-# from multiple_choice_w_dstype import get_answer_multiple_choice_w_dstype, compare_answers
+
+from multiple_choice_w_dstype import get_answer_multiple_choice_w_dstype, compare_answers
 
 from qa import (
     get_answer_qa,
@@ -223,10 +224,16 @@ def evaluate(model_name, num_fewshot, batch_size, device, limit):
         task_type = dataset['task_type']
         data = dataset['data']
         subtext = dataset.get('subtext', '')
+        dstype = data['dstype']
+        group = data['group']
 
         total_score = 0
         total_limit = min(limit, len(data))  # if needed
+        
+        dataset_score = 0  # Score for the current dataset
+        correct_count = 0  # Count of correct answers for the dataset
 
+        
         base_prompt_dynamic_mmlu = dynamic_multiple_choice_base_prompt(dataset=data, few_shot=5)  # for dynamic version 
         base_prompt_dynamic_subtype_mmlu = dynamic_multiple_choice_subtype_base_prompt(
             dataset=data, few_shot=5, subtype_text=subtext
@@ -240,17 +247,18 @@ def evaluate(model_name, num_fewshot, batch_size, device, limit):
             correct_answer = data['answer'][i]
 
 
-
             # ANSWERS:
             if task_type in ["mmlu", "mmlu_context"]:
-                if i >= num_fewshot: # if base few-shot works   # comment it if need to run all dataset
-                    predicted_answer = get_answer_multiple_choice(
-                        question, options, model, tokenizer, num_fewshot, base_prompt_dynamic_mmlu
-                    )
-                    # predicted_answer = get_answer_multiple_choice_w_subtype(question, options, model, tokenizer, num_fewshot, base_prompt_dynamic_subtype_mmlu)  # incl subtype
-                    # predicted_answer = get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num_fewshot, dstype='')  # with dstype
+                # if i >= num_fewshot: # if base few-shot works   # comment it if need to run all dataset
 
-                    # predicted_answer = get_answer_multiple_choice_w_category(question, options, model, tokenizer, num_fewshot, category)   # incl category. (for summarise)
+                    # predicted_answer = get_answer_multiple_choice(
+                    #     question, options, model, tokenizer, num_fewshot, base_prompt_dynamic_mmlu
+                    # ) # dynamic version
+
+                    # predicted_answer = get_answer_multiple_choice_w_subtype(question, options, model, tokenizer, num_fewshot, base_prompt_dynamic_subtype_mmlu)  # dynamic, incl subtype
+
+                    predicted_answer = get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num_fewshot, dstype=dstype)  # static, with dstype
+
 
             elif task_type == "qa":
                 context = data.get('context', [''])[i]
@@ -265,27 +273,66 @@ def evaluate(model_name, num_fewshot, batch_size, device, limit):
 
 
 
-            # SCORES:
-            if task_type in ["mmlu", "mmlu_context"]:
-                if compare_answers(correct_answer, predicted_answer):
-                    total_score += 1
+            # SCORES:  
+            # Version 1 (base version)
+        #     if task_type in ["mmlu", "mmlu_context"]:
+        #         if compare_answers(correct_answer, predicted_answer):
+        #             total_score += 1
 
-            elif task_type == "qa":
-                score = handle_qa_score(actual_answer=correct_answer, predicted_answer=predicted_answer)
-                # score = handle_qa_score(question=question, actual_answer=correct_answer, predicted_answer=predicted_answer)
-                total_score += score
+        #     elif task_type == "qa":
+        #         score = handle_qa_score(actual_answer=correct_answer, predicted_answer=predicted_answer)
+        #         # score = handle_qa_score(question=question, actual_answer=correct_answer, predicted_answer=predicted_answer)
+        #         total_score += score
 
-            elif task_type == "rag":
-                score = handle_context_qa_score(actual_answer=correct_answer, predicted_answer=predicted_answer)
-                # score = handle_qa_score(question=question, actual_answer=correct_answer, predicted_answer=predicted_answer)
-                total_score += score
+        #     elif task_type == "rag":
+        #         score = handle_context_qa_score(actual_answer=correct_answer, predicted_answer=predicted_answer)
+        #         # score = handle_qa_score(question=question, actual_answer=correct_answer, predicted_answer=predicted_answer)
+        #         total_score += score
 
-        result["results"][task_type] = {
-            "metric_name": total_score / total_limit if total_limit > 0 else 0.0
-        }    
+        # result["results"][task_type] = {
+        #     "metric_name": total_score / total_limit if total_limit > 0 else 0.0
+        # }    
 
         # result.save_to_disk('path/to/save/') # save
         # result.to_parquet('path/to/save/dataset.parquet')
+
+
+            # SCORES  
+            # Version 2: (base + dataset and group score)
+            if task_type in ["mmlu", "mmlu_context"]:
+                if compare_answers(correct_answer, predicted_answer):
+                    total_score += 1
+                    correct_count += 1  # Count correct answers for the dataset
+
+            elif task_type == "qa":
+                score = handle_qa_score(actual_answer=correct_answer, predicted_answer=predicted_answer)
+                total_score += score
+                dataset_score += score  # Update dataset score
+
+            elif task_type == "rag":
+                score = handle_context_qa_score(actual_answer=correct_answer, predicted_answer=predicted_answer)
+                total_score += score
+                dataset_score += score  # Update dataset score
+
+        # Average score for the dataset
+        average_dataset_score = dataset_score / total_limit if total_limit > 0 else 0.0
+        result["dataset_scores"][f"{group}_{task_type}"] = average_dataset_score
+
+        # Accumulate score for the group
+        if group not in result["group_scores"]:
+            result["group_scores"][group] = {
+                "total_score": 0,
+                "total_count": 0
+            }
+        result["group_scores"][group]["total_score"] += correct_count
+        result["group_scores"][group]["total_count"] += total_limit
+
+    # Compute average scores for each group
+    for group, scores in result["group_scores"].items():
+        total_score = scores["total_score"]
+        total_count = scores["total_count"]
+        result["group_scores"][group] = total_score / total_count if total_count > 0 else 0.0
+
 
     return result
 

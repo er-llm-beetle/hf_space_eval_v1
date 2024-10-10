@@ -386,9 +386,9 @@ def get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num
         return ''
 
 
-    elif dstype == 'kmc':
+    elif dstype == 'kmc': # Need to fix for each topic (10)
         try:
-            options = ",\n".join([f"{chr(65 + i)}) {option}" for i, option in enumerate(options)])  # A=65 in ASCII
+            options = ",\n".join([f"{chr(65 + i)}) {option}" for i, option in enumerate(options)]) 
         except Exception as e:
             print(f"No options - Error: {e}")
             options = 'No options - Error'
