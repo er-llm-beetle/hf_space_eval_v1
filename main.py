@@ -233,8 +233,7 @@ def evaluate(model_name, num_fewshot, batch_size, device, limit):
         )  # for dynamic version w subtext
 
 
-        for i in tqdm(range(num_fewshot, total_limit), desc=f'Evaluating {task_type}'): # if base few-shot works:
-        # for i in tqdm(range(total_limit), desc=f'Evaluating {task_type}'): # if need to run all dataset
+        for i in tqdm(range(total_limit), desc=f'Evaluating {task_type}'): 
             question = data['text'][i]
             options = data.get('options', [])[i] if task_type == "mmlu" else None
             context = data.get('context', [])[i] if task_type in ["rag", "mmlu_context"] else None
@@ -244,13 +243,14 @@ def evaluate(model_name, num_fewshot, batch_size, device, limit):
 
             # ANSWERS:
             if task_type in ["mmlu", "mmlu_context"]:
-                predicted_answer = get_answer_multiple_choice(
-                    question, options, model, tokenizer, num_fewshot, base_prompt_dynamic_mmlu
-                )
-                # predicted_answer = get_answer_multiple_choice_w_subtype(question, options, model, tokenizer, num_fewshot, base_prompt_dynamic_subtype_mmlu)  # incl subtype
-                # predicted_answer = get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num_fewshot, dstype='')  # with dstype
+                if i >= num_fewshot: # if base few-shot works   # comment it if need to run all dataset
+                    predicted_answer = get_answer_multiple_choice(
+                        question, options, model, tokenizer, num_fewshot, base_prompt_dynamic_mmlu
+                    )
+                    # predicted_answer = get_answer_multiple_choice_w_subtype(question, options, model, tokenizer, num_fewshot, base_prompt_dynamic_subtype_mmlu)  # incl subtype
+                    # predicted_answer = get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num_fewshot, dstype='')  # with dstype
 
-                # predicted_answer = get_answer_multiple_choice_w_category(question, options, model, tokenizer, num_fewshot, category)   # incl category. (for summarise)
+                    # predicted_answer = get_answer_multiple_choice_w_category(question, options, model, tokenizer, num_fewshot, category)   # incl category. (for summarise)
 
             elif task_type == "qa":
                 context = data.get('context', [''])[i]
