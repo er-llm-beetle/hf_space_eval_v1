@@ -9,7 +9,7 @@ import pandas as pd
 
 
 
-def get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num_fewshot, dstype):
+def get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num_fewshot, dstype, context = None):
 
     # generation_config = model.generation_config
     # generation_config.max_length = 1000
@@ -27,7 +27,7 @@ def get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num
         messages = [
             {
                 "role": "system",
-                "content": "You are given a statement along with multiple options that represent different topics. Choose the option that best categorizes the statement based on its topic. Respond with only the letter of the chosen answer (e.g., A, B, C, etc.), without any additional text."
+                "content": "You are an AI designed to answer questions in Azerbaijani. Your task is to select the correct option from the given question and answer choices. You are given a statement along with multiple options that represent different topics. Choose the option that best categorizes the statement based on its topic. Choose the single letter (A, B, C, D, E, F, G, H, I, J) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."
             },
             {
                 "role": "user",
@@ -80,65 +80,6 @@ def get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num
                 "content": f"Question:\n{question}\nOptions:\n{options}"
             }
         ]
-
-        # aze
-        # messages = [
-        #     {
-        #         "role": "system",
-        #         "content": "Sənə bir ifadə verilir və bu ifadə ilə əlaqəli müxtəlif mövzuları əks etdirən bir neçə seçim təqdim edilir. İfadənin mövzusuna uyğun ən yaxşı kateqoriyanı seç. Heç bir əlavə mətn olmadan, yalnız seçdiyin cavabın hərfini (məsələn, A, B, C və s.) yaz."        # version 1
-        #         "content": "Sənə müştəri tərəfindən banka göndərilən sorğu və onunla əlaqəli bir neçə seçim təqdim edilir. Müştəri tərəfindən banka göndərilən sorğunun mövzusunun təqdim edilən kateqoriyalardan hansına aid olduğunu müəyyən et. Cavab olaraq heç bir əlavə mətn olmadan, ancaq doğru variantı qaytar (məsələn: A, B, C və s.)."         # version 1 with Reshad's instruction
-        #         "content": "Müştəri tərəfindən banka göndərilən sorğunun mövzusunun təqdim edilən kateqoriyalardan hansına aid olduğunu müəyyən et. Cavab olaraq ancaq doğru variantı qaytar."                # Reshad's own instruction
-        #     },
-        #    {
-        #         "role": "user",
-        #         "content": "Sual:\nMənə yaxın filial tapmağa kömək edin.\nSeçimlər:\nA) ATM,\nB) FEES,\nC) OTHER,\nD) CARD,\nE) ACCOUNT,\nF) TRANSFER,\nG) PASSWORD,\nH) LOAN,\nI) CONTACT,\nJ) FIND\n\nCavab:"
-        #         # "content": "Sual:\nMənə yaxın filial tapmağa kömək edin.\nSeçimlər:\nA) BANKOMAT, B) KOMİSSİYA, C) DİGƏR, D) KART, E) HESAB, F) KÖÇÜRMƏ, G) ŞİFRƏ, H) KREDİT, I) ƏLAQƏ, J) TAP\n\nCavab:"   # Reshad's updated data
-        #     },
-        #     {
-        #         "role": "assistant",
-        #         "content": "J"
-        #     },
-        #     {
-        #         "role": "user",
-        #         "content": "Sual:\nŞifrə təyin etməliyəm, bunu necə edə bilərəm?\nSeçimlər:\nA) ATM,\nB) FEES,\nC) OTHER,\nD) CARD,\nE) ACCOUNT,\nF) TRANSFER,\nG) PASSWORD,\nH) LOAN,\nI) CONTACT,\nJ) FIND\n\nCavab:"
-        #         # "content": "Sual:\nŞifrə təyin etməliyəm, bunu necə edə bilərəm?\nSeçimlər:\nA) BANKOMAT, B) KOMİSSİYA, C) DİGƏR, D) KART, E) HESAB, F) KÖÇÜRMƏ, G) ŞİFRƏ, H) KREDİT, I) ƏLAQƏ, J) TAP\n\nCavab:"   # Reshad's updated data
-        #     },
-        #     {
-        #         "role": "assistant",
-        #         "content": "G"
-        #     },
-        #     {
-        #         "role": "user",
-        #         "content": "Sual:\nMən virtual kart almaq istəyirəm. Necə əldə edə bilərəm?\nSeçimlər:\nA) ATM,\nB) FEES,\nC) OTHER,\nD) CARD,\nE) ACCOUNT,\nF) TRANSFER,\nG) PASSWORD,\nH) LOAN,\nI) CONTACT,\nJ) FIND\n\nCavab:"
-        #         # "content": "Sual:\nMən virtual kart almaq istəyirəm. Necə əldə edə bilərəm?\nSeçimlər:\nA) BANKOMAT, B) KOMİSSİYA, C) DİGƏR, D) KART, E) HESAB, F) KÖÇÜRMƏ, G) ŞİFRƏ, H) KREDİT, I) ƏLAQƏ, J) TAP\n\nCavab:"    # Reshad's updated version
-        #     },
-        #     {
-        #         "role": "assistant",
-        #         "content": "D"
-        #     },
-            # {
-            #     "role": "user",
-            #     "content": "Sual:\nNə qədər vaxt tələb olunur ki, nağd pul çıxarışı görünsün?\nSeçimlər:\nA) ATM,\nB) FEES,\nC) OTHER,\nD) CARD,\nE) ACCOUNT,\nF) TRANSFER,\nG) PASSWORD,\nH) LOAN,\nI) CONTACT,\nJ) FIND\n\nCavab:"
-            #   # "content": "Sual:\nNə qədər vaxt tələb olunur ki, nağd pul çıxarışı görünsün?\nSeçimlər:\nA) BANKOMAT, B) KOMİSSİYA, C) DİGƏR, D) KART, E) HESAB, F) KÖÇÜRMƏ, G) ŞİFRƏ, H) KREDİT, I) ƏLAQƏ, J) TAP\n\nCavab:" # Reshad's updated version
-            # },
-            # {
-            #     "role": "assistant",
-            #     "content": "A"
-            # },
-            # {
-            #     "role": "user",
-            #     "content": "Sual:\nSalam, bu gün kripto ilə balans artırmağa çalışdım, amma alınmadı. Ola bilərmi ki, istifadə etdiyim bankın növü və ya mənim olduğum ölkə ilə əlaqədardır? Hesabımdan da pul çıxıb.\nSeçimlər:\nA) ATM,\nB) FEES,\nC) OTHER,\nD) CARD,\nE) ACCOUNT,\nF) TRANSFER,\nG) PASSWORD,\nH) LOAN,\nI) CONTACT,\nJ) FIND\n\nCavab:"
-            #   # "content": "Sual:\nSalam, bu gün kripto ilə balans artırmağa çalışdım, amma alınmadı. Ola bilərmi ki, istifadə etdiyim bankın növü və ya mənim olduğum ölkə ilə əlaqədardır? Hesabımdan da pul çıxıb.\nSeçimlər:\nA) BANKOMAT, B) KOMİSSİYA, C) DİGƏR, D) KART, E) HESAB, F) KÖÇÜRMƏ, G) ŞİFRƏ, H) KREDİT, I) ƏLAQƏ, J) TAP\n\nCavab:"    # Reshad's updated version
-            # },
-            # {
-            #     "role": "assistant",
-            #     "content": "E"
-            # },
-        #     {
-        #         "role": "user",
-        #         "content": f"Sual:\n{question}\nSeçimlər:\n{options}"
-        #     }
-         # ]
 
 
     elif dstype == 'mc': 
@@ -271,7 +212,8 @@ def get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num
         messages = [
             {
                 "role": "system",
-                "content": "You are an AI designed to answer questions in Azerbaijani based on reasoning and knowledge. Your task is selecting the most accurate answer in Azerbaijani based on a given question. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."
+                # "content": "You are an AI designed to answer questions in Azerbaijani based on reasoning and knowledge. Your task is selecting the most accurate answer in Azerbaijani based on a given question. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."
+                "content": "You are an AI designed to answer questions in Azerbaijani based on reasoning and knowledge. Your task is to select the correct option from the given question and answer choices. You are given a question along with multiple options. Choose the correct option. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."  # Reshad's update
             },
             {
                 "role": "user",
@@ -315,8 +257,8 @@ def get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num
             },
             {
                 "role": "assistant",
-                "content": "A"
-                # "content": "C"
+                # "content": "A"
+                "content": "C"
             },
             {
                 "role": "user",
@@ -382,11 +324,67 @@ def get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num
         # ]
 
 
-    elif dstype == 'qmc':
-        return ''
+    elif dstype == 'qmc': # check it
+        try:
+            options = ",\n".join([f"{chr(65 + i)}) {option}" for i, option in enumerate(options)])
+        except Exception as e:
+            print(f"No options - Error: {e}")
+            options = 'No options - Error'
 
 
-    elif dstype == 'kmc': # Need to fix for each topic (10)
+        messages = [
+            {
+                "role": "system",
+                "content": "You are an AI designed to answer questions in Azerbaijani. Your task is to select the correct option from the given question and answer choices. You are given a question along with multiple options. Choose the correct option. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."
+            },
+            {
+                "role": "user",
+                "content": "Question:\nAzərbaycandan Gürcüstana hansı kitab kolleksiyaları göndərilib?\nOptions:\nA) Heydər Əliyev və mədəniyyət,\nB) Elmira Axundovanın əsərləri,\nC) Azərbaycan mədəniyyəti haqqında kitablar,\nD) Müasir xarici siyasət kitabları\n\nAnswer:"
+            },
+            {
+                "role": "assistant",
+                "content": "A"
+            },
+            {
+                "role": "user",
+                "content": "Question:\nGəncədə başlayan 'Yeni Teatr' Respublika Festivalında hansı teatrlar iştirak edirlər?\nOptions:\nA) Bakı Bələdiyyə Teatrı,\nB) Naxçıvan Dövlət Teatrı,\nC) Abşeron Balet Teatrı,\nD) Şirvan Kukla Teatrı\n\nAnswer:"
+            },
+            {
+                "role": "assistant",
+                "content": "A"
+            },
+            {
+                "role": "user",
+                "content": "Question:\nQəşəm Nəcəfzadənin yeni kitabının adı nədir?\nOptions:\nA) Şirvannəşr,\nB) Qafqaz Universiteti,\nC) Oğlum qapını aç qapıda bir külək ölür,\nD) Küləyin ölümü\n\nAnswer:" 
+            },
+            {
+                "role": "assistant",
+                "content": "C"
+            },
+            {
+                "role": "user",
+                "content": "Question:\nBeynəlxalq Mədəniyyət günü hansı tarixdə qeyd olunur?\nOptions:\nA) 10 mart,\nB) 15 aprel,\nC) 21 iyun,\nD) 7 noyabr\n\nAnswer:"
+            },
+            {
+                "role": "assistant",
+                "content": "B"
+            },
+            {
+                "role": "user",
+                "content": "Question:\nFikrət Əmirovun əsəri hansı ölkənin paytaxtında səslənib?\nOptions:\nA) Mərakeş,\nB) Mexiko,\nC) Madrid,\nD) Monako\n\nAnswer:"
+            },
+            {
+                "role": "assistant",
+                "content": "B"
+            },
+            {
+                "role": "user",
+                "content": f"Question:\n{question}\nOptions:\n{options}"
+            }
+        ]
+
+
+    elif dstype == 'kmc': # Need to fix for each topic (10)  # mmlu-aze dataset
         try:
             options = ",\n".join([f"{chr(65 + i)}) {option}" for i, option in enumerate(options)]) 
         except Exception as e:
@@ -397,7 +395,7 @@ def get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num
         messages = [
             {
                 "role": "system",
-                "content": "You are an AI designed to answer questions in Azerbaijani based on {TOPIC NAME}. Your task is selecting the most accurate answer in Azerbaijani based on a given question. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."
+                "content": "You are an AI designed to answer questions in Azerbaijani based on {TOPIC NAME}. Your task is to select the correct option from the given question and answer choices. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."
             },
             {
                 # ..... # few-shots
@@ -408,6 +406,28 @@ def get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num
             }
         ]
 
+
+    # elif dstype == '' # fact_checker dataset  # need to create
+        # try:
+        #     options = ",\n".join([f"{chr(65 + i)}) {option}" for i, option in enumerate(options)]) 
+        # except Exception as e:
+        #     print(f"No options - Error: {e}")
+        #     options = 'No options - Error'
+
+
+        # messages = [
+        #     {
+        #         "role": "system",
+        #         "content": "You are an AI designed to answer questions in Azerbaijani based on {TOPIC NAME}. Your task is to select the correct option from the given question and answer choices. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."
+        #     },
+        #     {
+        #         # ..... # few-shots
+        #     },
+        #     {
+        #         "role": "user",
+        #         "content": f"Question:\n{question}\nOptions:\n{options}"
+        #     }
+        # ]
 
 
 

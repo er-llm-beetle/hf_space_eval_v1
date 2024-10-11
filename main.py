@@ -106,8 +106,13 @@ def evaluate(model_name, num_fewshot, batch_size, device, limit):
         },
         {
             "task_type": "mmlu_context",
-            "group": "context",
+            "group": "mmlu",
             "data": load_dataset("LLM-Beetle/anl_quad")["train"]
+        },
+        {
+            # "task_type": "mmlu_context_check", ??
+            "group": "context",
+            "data": load_dataset("LLM-Beetle/fact_checker")["train"]
         },
         {
             "task_type": "qa",
@@ -133,26 +138,33 @@ def evaluate(model_name, num_fewshot, batch_size, device, limit):
         {
             "task_type": "mmlu",
             "group": "mmlu",
-            "data": load_dataset("LLM-Beetle/mmlu-aze")["train"],
-            "subtext": ""
+            "data": load_dataset("LLM-Beetle/mmlu-aze")["train"], # update it if need
+            "subtext": "You are an AI designed to answer questions in Azerbaijani based on {TOPIC NAME}. Your task is to select the correct option from the given question and answer choices. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."
         },
         {
             "task_type": "mmlu",
             "group": "banking",
             "data": load_dataset("LLM-Beetle/banking_support")["train"],
-            "subtext": "You are given a statement along with multiple options that represent different topics. Choose the option that best categorizes the statement based on its topic. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."
+            "subtext": "You are an AI designed to answer questions in Azerbaijani. Your task is to select the correct option from the given question and answer choices. You are given a statement along with multiple options that represent different topics. Choose the option that best categorizes the statement based on its topic. Choose the single letter (A, B, C, D, E, F, G, H, I, J) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."
         },
         {
             "task_type": "mmlu",
             "group": "arc",
             "data": load_dataset("LLM-Beetle/arc_translated")["train"],
-            "subtext": "You are an AI designed to answer questions in Azerbaijani based on reasoning and knowledge. Your task is selecting the most accurate option in Azerbaijani based on a given question. Choose the single binary text (True or False). Respond with only the binary text (True or False), without any additional text."
+            "subtext": "You are an AI designed to answer questions in Azerbaijani based on reasoning and knowledge. Your task is to select the correct option from the given question and answer choices. You are given a question along with multiple options. Choose the correct option. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."
         },
         # {
         #     "task_type": "mmlu_context",
-        #     "group": "context",
+        #     "group": "mmlu",
         #     "data": load_dataset("LLM-Beetle/anl_quad")["train"],
-        #     "subtext": "You are an AI designed to answer questions in Azerbaijani based on given context in Azerbaijani. Your task is checking if the current text is from the context or not. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."
+        #     "subtext": "You are an AI designed to answer questions in Azerbaijani. Your task is to select the correct option from the given question and answer choices. You are given a question along with multiple options. Choose the correct option. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text."
+        # },
+        # {
+        #     # "task_type": "mmlu_context_check", ??
+        #     "group": "context",
+        #     "data": load_dataset("LLM-Beetle/fact_checker")["train"]
+        #     "subtext": "You are an AI designed to answer questions in Azerbaijani based on given article(context) in Azerbaijani. Your task is to determine whether a given claim is true or false based on the provided Wikipedia article. Choose only the binary text (True or False) and respond without any additional text."
+        # #    "subtext": "You are an AI designed to answer questions in Azerbaijani based on reasoning and knowledge. Your task is to determine whether a given claim is true or false based on the provided Wikipedia article. Choose only the binary text (True or False) and respond without any additional text."   # Reshad's reasoning version
         # },
         {
             "task_type": "qa",
@@ -190,16 +202,21 @@ def evaluate(model_name, num_fewshot, batch_size, device, limit):
         },
         {
             "task_type": "mmlu",
-            "dstype": "arc",
             "group": "arc",
-            "data": load_dataset("LLM-Beetle/arc_translated")["train"]
+            "data": load_dataset("LLM-Beetle/arc_translated")["train"],
         },
-        {
-            "task_type": "mmlu_context",
-            "dstype": "qmc",
-            "group": "context",
-            "data": load_dataset("LLM-Beetle/anl_quad")["train"]
-        },
+        # {
+        #     "task_type": "mmlu_context",
+        #     "group": "mmlu",
+            # "dstype": "qmc",
+        #     "data": load_dataset("LLM-Beetle/anl_quad")["train"],
+        # },
+        # {
+        #     # "task_type": "mmlu_context_check", ??
+        #     "group": "context",
+            # "dstype": "",
+        #     "data": load_dataset("LLM-Beetle/fact_checker")["train"]
+        # },
         {
             "task_type": "qa",
             "dstype": "qa",
@@ -257,7 +274,7 @@ def evaluate(model_name, num_fewshot, batch_size, device, limit):
 
                     # predicted_answer = get_answer_multiple_choice_w_subtype(question, options, model, tokenizer, num_fewshot, base_prompt_dynamic_subtype_mmlu)  # dynamic, incl subtype
 
-                    predicted_answer = get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num_fewshot, dstype=dstype)  # static, with dstype
+                    predicted_answer = get_answer_multiple_choice_w_dstype(question, options, model, tokenizer, num_fewshot, dstype, context)  # static, with dstype
 
 
             elif task_type == "qa":
